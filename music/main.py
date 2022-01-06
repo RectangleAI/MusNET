@@ -61,7 +61,9 @@ def get_song_data(music_notes):
     '''
     note_freqs = get_piano_notes() # Function that we made earlier
     song = [get_wave(note_freqs[note]) for note in music_notes.split('-')]
+    print(song)
     song = np.concatenate(song)
+    print(song)
     return song
 
 music_notes = 'C-C-G-G-A-A-G--F-F-E-E-D-D-C--G-G-F-F-E-E-D--G-G-F-F-E-E-D--C-C-G-G-A-A-G--F-F-E-E-D-D-C'
