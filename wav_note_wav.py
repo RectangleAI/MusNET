@@ -47,13 +47,13 @@ def get_song_data(music_notes):
     '''
     Function to concatenate all the waves (notes)
     '''
-    print(len(music_notes))
-    print(type(music_notes))
+    # print(len(music_notes))
+    # print(type(music_notes))
     note_freqs = librosa.note_to_hz(music_notes) # Function that we made earlier
-    print(len(note_freqs))
-    print(type(note_freqs))
-    song = [get_wave(fre) for fre in note_freqs[0:400].astype(np.int16)]
-    print(type(song[0]))
+    # print(len(note_freqs))
+    # print(type(note_freqs))
+    song = [get_wave(fre) for fre in note_freqs.astype(np.int16)]
+    # print(type(song[0]))
     song = np.concatenate(song)
     return song
 
