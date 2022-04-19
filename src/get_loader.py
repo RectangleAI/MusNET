@@ -70,7 +70,7 @@ class Voice2NoteDataset(Dataset):
             self.captions = gf.readlines()
         # Get img, caption columns
         # self.imgs = self.df["image"]
-        self.aud = glob(root_dir)
+        self.aud = os.listdir(root_dir)
         # self.captions = self.df["caption"]
 
         # Initialize vocabulary and build vocab
@@ -79,7 +79,7 @@ class Voice2NoteDataset(Dataset):
         self.vocab.build_vocabulary(self.captions)
 
         self.device = device
-        self.transformation = transformation.to(self.device)
+        self.transformation = transformation#.to(self.device)
         self.target_sample_rate = target_sample_rate
         self.num_samples = num_samples
         
@@ -87,19 +87,6 @@ class Voice2NoteDataset(Dataset):
     def __len__(self):
         return len(self.aud)
 
-    # def __getitem__(self, index):
-    #     caption = self.captions[index]
-    #     img_id = self.imgs[index]
-    #     img = Image.open(os.path.join(self.root_dir, img_id)).convert("RGB")
-
-    #     if self.transform is not None:
-    #         img = self.transform(img)
-
-    #     numericalized_caption = [self.vocab.stoi["<SOS>"]]
-    #     numericalized_caption += self.vocab.numericalize(caption)
-    #     numericalized_caption.append(self.vocab.stoi["<EOS>"])
-
-    #     return img, torch.tensor(numericalized_caption)
 
     def __getitem__(self, index) :
         audio_sample_path = self._get_audio_sample_path(index)
@@ -108,6 +95,7 @@ class Voice2NoteDataset(Dataset):
         numericalized_caption += self.vocab.numericalize(caption)
         numericalized_caption.append(self.vocab.stoi["<EOS>"])
         
+        
         signal, sr = torchaudio.load(audio_sample_path)
         signal = self._resample_if_necessary(signal, sr)
         signal = self._mix_down_if_necessary(signal)
@@ -115,7 +103,6 @@ class Voice2NoteDataset(Dataset):
         signal = self._right_pad_if_necessary(signal)
         signal = signal.to(self.device)
         signal = self.transformation(signal)
-
         return signal, torch.tensor(numericalized_caption)
 
     def _cut_if_necessary(self, signal):
@@ -144,7 +131,7 @@ class Voice2NoteDataset(Dataset):
         return signal
     
     def _get_audio_sample_path(self, index):
-        path = os.path.join(self.root_dir, self.captions[index])
+        path = os.path.join(self.root_dir, self.aud[index])
         return path
     
 
@@ -171,7 +158,7 @@ def get_loader(
     target_sample_rate,
     num_samples,
     device,
-    batch_size=32,
+    batch_size=1,
     num_workers=8,
     shuffle=True,
     pin_memory=True,
@@ -199,8 +186,8 @@ if __name__ == "__main__":
     transform = transforms.Compose(
         [transforms.Resize((224, 224)), transforms.ToTensor(),]
     )
-    SAMPLE_RATE = 22050
-    NUM_SAMPLES = 22050
+    SAMPLE_RATE = 16000
+    NUM_SAMPLES = 131071
 
     device = ('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
@@ -208,7 +195,7 @@ if __name__ == "__main__":
         sample_rate=SAMPLE_RATE,
         n_fft = 1024,
         hop_length=512,
-        n_mels=64)
+        n_mels=299)
 
     loader, dataset = get_loader(
         "./data/voice_wav/", "./data/guitarp.txt", transform=mel_spectogram, target_sample_rate=SAMPLE_RATE,
@@ -218,3 +205,4 @@ if __name__ == "__main__":
     for idx, (imgs, captions) in enumerate(loader):
         print(imgs.shape)
         print(captions.shape)
+        break
