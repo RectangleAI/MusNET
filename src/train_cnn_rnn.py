@@ -33,7 +33,8 @@ def train():
     
     with open('data/vocab','wb') as f:
         pickle.dump(dataset.vocab,f)
-
+        
+    torch.multiprocessing.set_start_method('spawn')
     torch.backends.cudnn.benchmark = True
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     load_model = False
