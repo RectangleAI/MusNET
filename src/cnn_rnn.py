@@ -15,28 +15,15 @@ class EncoderCNN(nn.Module):
         self.model.classifier = nn.Linear(25088, embed_size)
         self.first_conv_layer.extend(list(self.model.features))
 
-        # self.inception = models.vgg16(pretrained=False)
         self.model.features= nn.Sequential(*self.first_conv_layer )
-        # self.inception.fc = nn.Linear(self.inception.fc.in_features, embed_size)
-        # self.first_conv_layer.extend(list(self.inception))
-        
-        # self.inception.features= nn.Sequential(*self.first_conv_layer ) 
 
 
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.5)
 
     def forward(self, images):
-        print(images.shape)
-        print(self.model)
         features = self.model(images)
-        
-        for name, param in self.model.named_parameters():
-            if "fc.weight" in name or "fc.bias" in name:
-                param.requires_grad = True
-            else:
-                param.requires_grad = self.train_CNN
-        
+
         return self.dropout(self.relu(features))
 
 class DecoderRNN(nn.Module):
@@ -48,7 +35,7 @@ class DecoderRNN(nn.Module):
         self.dropout = nn.Dropout(0.5)
 
     def forward(self, features, caption):
-        print(embeddings.shape,features.unsqueeze(0).shape)
+        embeddings = self.dropout(self.embed(caption))
         embeddings = torch.cat((features.unsqueeze(0), embeddings), dim=0)
         hiddens, _ = self.lstm(embeddings)
         outputs = self.linear(hiddens)
@@ -63,6 +50,8 @@ class CNNtoRNN(nn.Module):
     
     def forward(self, images, captions):
         features = self.encoderCNN(images)
+        print(images.shape)
+        print(features.shape)
         outputs = self.decoderRNN(features, captions)
 
         return outputs
@@ -90,14 +79,14 @@ class CNNtoRNN(nn.Module):
 if __name__ == "__main__":
     load_model = False
     save_model = False
-    train_CNN = False
+    train_CNN = True
 
     # Hyperparameters
     embed_size = 256
     hidden_size = 256
     num_layers = 1
     learning_rate = 3e-4
-    num_epochs = 10
+    num_epochs = 1
     x = torch.randn(1,1,299,256)
     # y = torch.randint(20,1).unsqueeze(0).to(torch.int64)
 
