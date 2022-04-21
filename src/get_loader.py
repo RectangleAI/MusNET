@@ -161,7 +161,7 @@ def get_loader(
     batch_size=1,
     num_workers=8,
     shuffle=True,
-    pin_memory=True,
+    pin_memory=False,
     
 
 ):
