@@ -4,7 +4,7 @@ from PIL import Image
 import torchaudio
 
 
-def audio_to_melspec(audio_path,target_sample_rate,num_samples,SAMPLE_RATE):
+def audio_to_melspec(audio_path,target_sample_rate,num_samples,):
     def resample_if_necessary(signal, sr):
         if sr != target_sample_rate:
             resampler = torchaudio.transforms.Resample(sr, target_sample_rate)
@@ -30,9 +30,10 @@ def audio_to_melspec(audio_path,target_sample_rate,num_samples,SAMPLE_RATE):
             signal = torch.nn.functional.pad(signal, last_dim_padding)
         return signal
     transformation = torchaudio.transforms.MelSpectrogram(
-        sample_rate=SAMPLE_RATE,
+        sample_rate=22500,
         n_fft = 1024,
-        hop_length=512,)
+        hop_length=512,
+        n_mels=299)
 
     signal, sr = torchaudio.load(audio_path)
     signal = resample_if_necessary(signal, sr)
