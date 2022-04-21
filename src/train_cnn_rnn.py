@@ -8,35 +8,21 @@ from utils import save_checkpoint, load_checkpoint, print_examples
 from get_loader import get_loader
 from cnn_rnn import CNNtoRNN
 import torchaudio
+import pickle
 
 def train():
-    # transform = transforms.Compose(
-    #     [
-    #         transforms.Resize((356, 356)),
-    #         transforms.RandomCrop((299, 299)),
-    #         transforms.ToTensor(),
-    #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    #     ]
-    # )
+
     spectogram = torchaudio.transforms.MelSpectrogram(
         sample_rate=22500,
         n_fft = 1024,
         hop_length=512,
         n_mels=299
     )
-    transform = transforms.Compose(
-        [   
-            spectogram,
-            # transforms.Resize((356, 356)),
-            # transforms.RandomCrop((299, 299)),
-            # transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ]
-    )
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loader, dataset = get_loader(
-        root_folder="./data/voice_wav/",
+        root_folder="/content/drive/MyDrive/DataSetVoice/voice_wav",
         annotation_file= "./data/guitarp.txt",
         transform=spectogram,
         target_sample_rate=22500,
@@ -44,21 +30,23 @@ def train():
         device=device,
         num_workers=2,
     )
+    
+    with open('data/vocab','wb') as f:
+        pickle.dump(dataset.vocab,f)
 
     torch.backends.cudnn.benchmark = True
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     load_model = False
-    save_model = False
-    train_CNN = False
+    save_model = True
+    train_CNN = True
 
     # Hyperparameters
     embed_size = 256
     hidden_size = 256
     vocab_size = len(dataset.vocab)
-    num_layers = 1
+    num_layers = 2
     learning_rate = 3e-4
-    num_epochs = 10
-
+    num_epochs = 2
     # for tensorboard
     writer = SummaryWriter("runs/voice2n")
     step = 0
@@ -90,7 +78,7 @@ def train():
                 "optimizer": optimizer.state_dict(),
                 "step": step,
             }
-            # save_checkpoint(checkpoint)
+            save_checkpoint(checkpoint)
 
         for idx, (imgs, captions) in tqdm(
             enumerate(train_loader), total=len(train_loader), leave=False
