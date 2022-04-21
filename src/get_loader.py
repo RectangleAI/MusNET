@@ -79,7 +79,7 @@ class Voice2NoteDataset(Dataset):
         self.vocab.build_vocabulary(self.captions)
 
         self.device = device
-        self.transformation = transformation#.to(self.device)
+        self.transformation = transformation.to(self.device)
         self.target_sample_rate = target_sample_rate
         self.num_samples = num_samples
         
